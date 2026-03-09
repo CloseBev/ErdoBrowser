@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Erdo Browser — Güçlü. Hızlı. Güvenli.</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Geist+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:      #08080a;
+    --bg2:     #0f0f12;
+    --bg3:     #161619;
+    --bg4:     #1c1c21;
+    --border:  #1e1e26;
+    --border2: #2a2a36;
+    --accent:  #ff6b00;
+    --accent2: #ff3d00;
+    --accent3: #ff9500;
+    --text:    #f0f0f4;
+    --muted:   #50505f;
+    --dim:     #80809a;
+    --green:   #27c93f;
+    --red:     #ff5f56;
+  }
+
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── GRAIN ── */
+  body::after {
+    content:''; position:fixed; inset:0; z-index:9999; pointer-events:none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    opacity:.018;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position:fixed; top:0; left:0; right:0; z-index:200;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 52px; height:62px;
+    background:rgba(8,8,10,.9);
+    backdrop-filter:blur(24px) saturate(1.5);
+    border-bottom:1px solid rgba(255,255,255,.04);
+  }
+  .nav-logo { display:flex; align-items:center; gap:10px; font-size:16px; font-weight:800; letter-spacing:1.5px; text-decoration:none; color:var(--text); }
+  .nav-logo .lb { width:28px; height:28px; background:linear-gradient(140deg,var(--accent3),var(--accent),var(--accent2)); border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:900; color:#fff; }
+  .nav-links { display:flex; gap:28px; align-items:center; }
+  .nav-links a { color:var(--dim); text-decoration:none; font-size:13px; font-weight:600; letter-spacing:.3px; transition:color .2s; }
+  .nav-links a:hover { color:var(--text); }
+  .platform-switch { display:flex; align-items:center; gap:3px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); border-radius:10px; padding:3px; margin-left:18px; }
+  .platform-btn { display:flex; align-items:center; gap:6px; padding:5px 13px; border-radius:7px; font-size:12px; font-weight:700; letter-spacing:.4px; cursor:pointer; border:none; background:transparent; color:var(--dim); transition:all .2s; }
+  .platform-btn.active { background:rgba(255,107,0,.18); color:var(--accent3); }
+  .platform-btn:hover:not(.active) { color:var(--text); background:rgba(255,255,255,.05); }
+  .nav-cta { background:var(--accent) !important; color:#fff !important; padding:7px 18px; border-radius:8px; font-weight:700 !important; transition:all .2s !important; }
+  .nav-cta:hover { background:var(--accent3) !important; transform:translateY(-1px); box-shadow:0 4px 20px rgba(255,107,0,.3) !important; }
+
+  /* ── HERO ── */
+  .hero {
+    min-height:100vh; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; text-align:center;
+    padding:130px 24px 100px; position:relative; overflow:hidden;
+  }
+  .hero-bg {
+    position:absolute; inset:0; pointer-events:none;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% -10%, rgba(255,107,0,.13) 0%, transparent 55%),
+      radial-gradient(ellipse 40% 40% at 20% 80%, rgba(255,61,0,.06) 0%, transparent 50%),
+      radial-gradient(ellipse 50% 50% at 85% 70%, rgba(255,149,0,.05) 0%, transparent 50%);
+  }
+  /* grid lines */
+  .hero-grid {
+    position:absolute; inset:0; pointer-events:none;
+    background-image:linear-gradient(rgba(255,107,0,.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,107,0,.025) 1px, transparent 1px);
+    background-size:64px 64px;
+    -webkit-mask-image:radial-gradient(ellipse 85% 80% at 50% 50%, black 0%, transparent 75%);
+    mask-image:radial-gradient(ellipse 85% 80% at 50% 50%, black 0%, transparent 75%);
+  }
+  .hero-badge {
+    display:inline-flex; align-items:center; gap:8px;
+    background:rgba(255,107,0,.08); border:1px solid rgba(255,107,0,.2);
+    border-radius:100px; padding:6px 16px 6px 10px;
+    font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase;
+    color:var(--accent3); margin-bottom:32px; position:relative; z-index:1;
+    animation:fadeUp .8s ease both;
+  }
+  .bdot { width:6px; height:6px; background:var(--accent); border-radius:50%; animation:bdpulse 2s ease-in-out infinite; }
+  @keyframes bdpulse { 0%,100%{box-shadow:0 0 0 0 rgba(255,107,0,.5)} 50%{box-shadow:0 0 0 6px rgba(255,107,0,0)} }
+  .hero h1 {
+    font-size:clamp(54px,10vw,118px); font-weight:800; line-height:.92;
+    letter-spacing:-4px; position:relative; z-index:1;
+    animation:fadeUp .8s .08s ease both;
+  }
+  .grad-text {
+    background:linear-gradient(95deg, var(--accent3) 0%, var(--accent) 45%, var(--accent2) 100%);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  }
+  .hero-sub {
+    font-size:clamp(15px,1.8vw,17px); color:var(--dim); max-width:500px;
+    line-height:1.75; margin:28px auto 0; font-weight:400;
+    position:relative; z-index:1; animation:fadeUp .8s .16s ease both;
+  }
+  .hero-actions {
+    display:flex; gap:12px; margin-top:44px; position:relative; z-index:1;
+    animation:fadeUp .8s .24s ease both; flex-wrap:wrap; justify-content:center;
+  }
+  .btn-primary {
+    display:inline-flex; align-items:center; gap:9px;
+    background:var(--accent); color:#fff; padding:13px 30px;
+    border-radius:10px; font-size:15px; font-weight:700; text-decoration:none;
+    transition:all .2s; box-shadow:0 0 40px rgba(255,107,0,.28);
+  }
+  .btn-primary:hover { background:var(--accent3); transform:translateY(-2px); box-shadow:0 0 60px rgba(255,107,0,.45); }
+  .btn-secondary {
+    display:inline-flex; align-items:center; gap:9px;
+    background:transparent; color:var(--text); padding:13px 30px;
+    border-radius:10px; font-size:15px; font-weight:600; text-decoration:none;
+    border:1.5px solid var(--border2); transition:all .2s;
+  }
+  .btn-secondary:hover { border-color:var(--accent); transform:translateY(-2px); color:var(--accent3); }
+
+  /* MOCKUP */
+  .hero-mockup { position:relative; z-index:1; margin-top:72px; width:min(880px,92vw); animation:fadeUp .8s .32s ease both; }
+  .mockup-frame {
+    background:var(--bg2); border:1px solid var(--border);
+    border-radius:14px; overflow:hidden;
+    box-shadow:0 0 0 1px rgba(255,107,0,.06), 0 50px 120px rgba(0,0,0,.85), 0 0 100px rgba(255,107,0,.07);
+  }
+  .mockup-bar { background:var(--bg3); height:40px; display:flex; align-items:center; padding:0 14px; gap:8px; border-bottom:1px solid var(--border); }
+  .dot { width:11px; height:11px; border-radius:50%; }
+  .dot-r{background:#ff5f56} .dot-y{background:#ffbd2e} .dot-g{background:#27c93f}
+  .mockup-tabs { display:flex; gap:3px; margin-left:10px; flex:1; }
+  .tab { padding:0 14px; height:27px; background:var(--bg2); border-radius:5px; font-size:11px; color:var(--dim); display:flex; align-items:center; gap:6px; font-family:'Geist Mono',monospace; }
+  .tab.active { background:var(--bg); color:var(--text); border-bottom:2px solid var(--accent); border-radius:5px 5px 0 0; }
+  .tab-dot { width:5px; height:5px; border-radius:50%; background:var(--accent); }
+  .mockup-toolbar { height:44px; display:flex; align-items:center; padding:0 12px; gap:8px; background:var(--bg2); border-bottom:1px solid var(--border); }
+  .tb-btn { width:26px; height:26px; background:var(--bg3); border-radius:5px; display:flex; align-items:center; justify-content:center; font-size:12px; color:var(--muted); }
+  .tb-addr { flex:1; height:28px; background:var(--bg); border:1px solid var(--border); border-radius:7px; display:flex; align-items:center; padding:0 12px; gap:6px; font-family:'Geist Mono',monospace; font-size:11px; color:var(--dim); }
+  .addr-lock { color:var(--green); font-size:10px; }
+  .mockup-content { height:260px; background:linear-gradient(160deg,#0b0b0f,#100f14); display:flex; align-items:center; justify-content:center; flex-direction:column; gap:14px; position:relative; overflow:hidden; }
+  .mockup-content::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 50% 35%,rgba(255,107,0,.09) 0%,transparent 60%); }
+  .mock-logo { width:52px; height:52px; background:linear-gradient(140deg,var(--accent3),var(--accent),var(--accent2)); border-radius:13px; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:900; color:#fff; box-shadow:0 0 40px rgba(255,107,0,.4); position:relative; z-index:1; }
+  .mock-title { font-size:20px; font-weight:800; letter-spacing:2.5px; background:linear-gradient(90deg,var(--accent3),var(--accent)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; position:relative; z-index:1; }
+  .mock-search { display:flex; align-items:center; background:rgba(255,255,255,.05); border:1px solid rgba(255,107,0,.18); border-radius:30px; padding:7px 20px; gap:8px; font-size:12px; color:var(--dim); position:relative; z-index:1; font-family:'Geist Mono',monospace; }
+  .mock-links { display:flex; gap:8px; position:relative; z-index:1; }
+  .mock-link { background:rgba(255,255,255,.04); border:1px solid rgba(255,107,0,.1); border-radius:8px; padding:5px 12px; font-size:10px; color:var(--dim); font-family:'Geist Mono',monospace; }
+
+  @keyframes fadeUp { from{opacity:0;transform:translateY(22px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-20px)} }
+
+  /* ── STATS BAR ── */
+  .stats { display:flex; justify-content:center; border-top:1px solid var(--border); border-bottom:1px solid var(--border); background:var(--bg2); }
+  .stat { flex:1; max-width:260px; padding:36px 24px; text-align:center; border-right:1px solid var(--border); transition:background .3s; }
+  .stat:last-child { border-right:none; }
+  .stat:hover { background:var(--bg3); }
+  .stat-number { font-size:46px; font-weight:800; background:linear-gradient(135deg,var(--accent3),var(--accent)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; line-height:1; }
+  .stat-label { font-size:12px; color:var(--muted); margin-top:6px; letter-spacing:.5px; }
+
+  /* ── SECTIONS ── */
+  .section { padding:100px 52px; max-width:1140px; margin:0 auto; }
+  .section-label { font-size:11px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:var(--accent); margin-bottom:14px; font-family:'Geist Mono',monospace; }
+  .section-title { font-size:clamp(30px,4.5vw,52px); font-weight:800; line-height:1.05; letter-spacing:-1.5px; max-width:600px; }
+  .section-sub { font-size:15px; color:var(--dim); max-width:480px; line-height:1.75; margin-top:14px; font-weight:400; }
+
+  /* ── FEATURES GRID ── */
+  .features-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1px; margin-top:60px; background:var(--border); border:1px solid var(--border); border-radius:16px; overflow:hidden; }
+  .feature-card { background:var(--bg2); padding:36px 30px; transition:background .3s; position:relative; overflow:hidden; }
+  .feature-card::after { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,var(--accent),transparent); opacity:0; transition:opacity .3s; }
+  .feature-card:hover { background:var(--bg3); }
+  .feature-card:hover::after { opacity:1; }
+  .feature-icon { width:42px; height:42px; background:rgba(255,107,0,.1); border:1px solid rgba(255,107,0,.2); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:19px; margin-bottom:18px; }
+  .feature-title { font-size:16px; font-weight:700; margin-bottom:9px; }
+  .feature-desc { font-size:13px; color:var(--dim); line-height:1.65; font-weight:400; }
+
+  /* ── BIG FEATURES ── */
+  .big-feature { display:grid; grid-template-columns:1fr 1fr; gap:64px; align-items:center; padding:80px 52px; max-width:1140px; margin:0 auto; }
+  .big-feature.reverse { direction:rtl; }
+  .big-feature.reverse > * { direction:ltr; }
+  .bf-visual { background:var(--bg2); border:1px solid var(--border); border-radius:16px; aspect-ratio:4/3; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; }
+  .bf-visual::before { content:''; position:absolute; inset:0; background:radial-gradient(circle at 50% 50%,rgba(255,107,0,.07) 0%,transparent 60%); }
+
+  .mem-visual { flex-direction:column; gap:12px; padding:30px; }
+  .mem-bar-wrap { width:100%; position:relative; z-index:1; }
+  .mem-label { display:flex; justify-content:space-between; font-size:11px; color:var(--dim); font-family:'Geist Mono',monospace; margin-bottom:5px; }
+  .mem-bar { height:7px; background:var(--bg3); border-radius:4px; overflow:hidden; }
+  .mem-fill { height:100%; border-radius:4px; background:linear-gradient(90deg,var(--accent),var(--accent3)); }
+  .mem-other { background:var(--muted); }
+
+  .dl-visual { flex-direction:column; gap:10px; padding:26px; }
+  .dl-item { display:flex; align-items:center; gap:12px; background:rgba(255,255,255,.04); border:1px solid var(--border); border-radius:10px; padding:11px 14px; position:relative; z-index:1; width:100%; }
+  .dl-icon { font-size:20px; }
+  .dl-info { flex:1; }
+  .dl-name { font-size:12px; font-weight:600; margin-bottom:4px; }
+  .dl-prog { height:4px; background:var(--bg3); border-radius:2px; }
+  .dl-prog-fill { height:100%; border-radius:2px; background:linear-gradient(90deg,var(--accent),var(--accent3)); }
+  .dl-size { font-size:11px; color:var(--dim); font-family:'Geist Mono',monospace; }
+
+  /* Security visual */
+  .sec-visual { flex-direction:column; gap:7px; padding:26px; }
+  .sec-row { display:flex; align-items:center; gap:11px; border:1px solid var(--border); border-radius:8px; padding:9px 13px; position:relative; z-index:1; width:100%; background:rgba(255,255,255,.02); }
+  .sec-row.blocked { border-color:rgba(255,61,0,.3); background:rgba(255,61,0,.04); }
+  .sec-row.ok { border-color:rgba(39,201,63,.25); background:rgba(39,201,63,.03); }
+  .sec-icon { font-size:14px; }
+  .sec-url { font-size:10.5px; font-family:'Geist Mono',monospace; color:var(--dim); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .sec-badge { font-size:9px; font-weight:700; letter-spacing:.5px; padding:2px 8px; border-radius:4px; font-family:'Geist Mono',monospace; white-space:nowrap; }
+  .sec-badge.ok { background:rgba(39,201,63,.14); color:var(--green); }
+  .sec-badge.block { background:rgba(255,61,0,.14); color:var(--red); }
+
+  /* Sound visual */
+  .sound-visual { flex-direction:column; gap:10px; padding:28px; }
+  .snd-row { display:flex; align-items:center; gap:14px; background:rgba(255,255,255,.03); border:1px solid var(--border); border-radius:10px; padding:12px 16px; position:relative; z-index:1; width:100%; transition:border-color .2s; }
+  .snd-row:hover { border-color:rgba(255,107,0,.3); }
+  .snd-dot { width:12px; height:12px; border-radius:50%; flex-shrink:0; }
+  .snd-name { font-size:13px; font-weight:600; flex:1; }
+  .snd-wave { display:flex; align-items:center; gap:2px; }
+  .snd-bar { width:3px; border-radius:2px; background:var(--accent); animation:wavebounce var(--d) ease-in-out infinite; }
+  @keyframes wavebounce { 0%,100%{height:4px;opacity:.4} 50%{height:var(--h);opacity:1} }
+
+  /* ── THEMES ── */
+  .themes-grid { display:flex; gap:10px; margin-top:44px; flex-wrap:wrap; }
+  .theme-pill { display:flex; align-items:center; gap:10px; background:var(--bg2); border:1px solid var(--border); border-radius:100px; padding:9px 20px; cursor:pointer; transition:all .25s; }
+  .theme-pill:hover { border-color:var(--accent); transform:translateY(-2px); background:var(--bg3); }
+  .theme-color { width:13px; height:13px; border-radius:50%; }
+  .theme-name { font-size:13px; font-weight:600; }
+
+  /* ── SHORTCUTS ── */
+  .shortcuts-section { padding:80px 52px; background:var(--bg2); border-top:1px solid var(--border); border-bottom:1px solid var(--border); }
+  .shortcuts-inner { max-width:1140px; margin:0 auto; }
+  .shortcuts-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:44px; }
+  .shortcut { background:var(--bg3); border:1px solid var(--border); border-radius:10px; padding:16px 18px; display:flex; align-items:center; gap:12px; transition:border-color .2s; }
+  .shortcut:hover { border-color:rgba(255,107,0,.35); }
+  .kbd-combo { display:flex; gap:3px; align-items:center; }
+  .kbd { background:var(--bg); border:1px solid var(--border2); border-radius:5px; padding:3px 7px; font-size:11px; font-weight:700; font-family:'Geist Mono',monospace; color:var(--accent3); }
+  .shortcut-desc { font-size:12px; color:var(--dim); }
+
+  /* ── CHANGELOG ── */
+  .changelog-section { padding:100px 52px; max-width:1140px; margin:0 auto; }
+  .cl-card { border-radius:16px; padding:30px 36px; margin-bottom:20px; position:relative; overflow:hidden; }
+  .cl-card.new { background:linear-gradient(135deg,rgba(255,107,0,.07),rgba(255,107,0,.02)); border:1px solid rgba(255,107,0,.22); }
+  .cl-card.old { background:rgba(255,255,255,.02); border:1px solid rgba(255,255,255,.06); }
+  .cl-stripe { position:absolute; top:0; left:0; width:4px; height:100%; border-radius:4px 0 0 4px; }
+  .cl-stripe.new { background:linear-gradient(180deg,var(--accent3),var(--accent2)); }
+  .cl-stripe.old { background:#222230; }
+  .cl-header { display:flex; align-items:center; gap:12px; margin-bottom:22px; flex-wrap:wrap; }
+  .cl-badge { font-size:12px; font-weight:800; padding:3px 14px; border-radius:20px; letter-spacing:.8px; }
+  .cl-badge.new { background:linear-gradient(135deg,var(--accent3),var(--accent2)); color:#fff; }
+  .cl-badge.old { background:var(--bg4); color:var(--muted); }
+  .cl-version { font-size:22px; font-weight:800; }
+  .cl-date { font-size:13px; color:var(--muted); margin-left:auto; font-family:'Geist Mono',monospace; }
+  .cl-items { display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:12px; }
+  .cl-item { display:flex; gap:10px; align-items:flex-start; }
+  .cl-emoji { font-size:15px; margin-top:1px; flex-shrink:0; }
+  .cl-item-title { font-size:13px; font-weight:600; color:var(--text); margin-bottom:2px; }
+  .cl-item-desc { font-size:11px; color:var(--muted); line-height:1.5; }
+  .cl-old-items { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:8px; }
+  .cl-old-item { font-size:12px; color:var(--muted); display:flex; align-items:center; gap:6px; }
+
+  /* ── CTA ── */
+  .cta-section { padding:120px 52px; text-align:center; position:relative; overflow:hidden; }
+  .cta-section::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 50% 100%,rgba(255,107,0,.11) 0%,transparent 60%); pointer-events:none; }
+  .cta-section h2 { font-size:clamp(36px,6vw,68px); font-weight:800; letter-spacing:-2px; position:relative; z-index:1; }
+  .cta-section p { font-size:16px; color:var(--dim); margin:18px auto; max-width:420px; position:relative; z-index:1; font-weight:400; line-height:1.7; }
+  .version-tag { display:inline-block; background:rgba(255,107,0,.1); border:1px solid rgba(255,107,0,.22); color:var(--accent3); border-radius:6px; padding:4px 12px; font-size:11px; font-weight:700; font-family:'Geist Mono',monospace; letter-spacing:1px; margin-bottom:20px; position:relative; z-index:1; }
+
+  .dl-card { max-width:460px; margin:40px auto 0; position:relative; z-index:1; }
+  .dl-inner { background:rgba(255,107,0,.06); border:1.5px solid rgba(255,107,0,.28); border-radius:16px; padding:26px 30px; text-align:left; }
+  .dl-top { display:flex; align-items:center; gap:14px; margin-bottom:20px; }
+  .dl-logo { width:46px; height:46px; background:linear-gradient(140deg,var(--accent3),var(--accent),var(--accent2)); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:900; color:#fff; box-shadow:0 0 24px rgba(255,107,0,.35); flex-shrink:0; }
+  .dl-filename { font-size:14px; font-weight:700; }
+  .dl-meta { font-size:11px; color:var(--muted); font-family:'Geist Mono',monospace; margin-top:3px; }
+  .dl-btn { display:flex; align-items:center; justify-content:center; gap:9px; background:var(--accent); color:#fff; padding:13px; border-radius:10px; font-size:15px; font-weight:700; text-decoration:none; box-shadow:0 0 36px rgba(255,107,0,.3); transition:all .2s; }
+  .dl-btn:hover { background:var(--accent3); transform:translateY(-2px); box-shadow:0 0 50px rgba(255,107,0,.45); }
+  .dl-chips { display:flex; gap:16px; margin-top:12px; justify-content:center; flex-wrap:wrap; }
+  .dl-chip { font-size:11px; color:var(--muted); }
+  .dl-req { margin-top:10px; background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:12px 18px; display:flex; gap:16px; justify-content:center; flex-wrap:wrap; }
+  .dl-req span { font-size:11px; color:var(--dim); font-family:'Geist Mono',monospace; }
+
+  /* beta warning */
+  .beta-warn { display:inline-flex; align-items:center; gap:10px; background:linear-gradient(135deg,rgba(255,30,0,.12),rgba(255,150,0,.08)); border:1.5px solid rgba(255,80,0,.4); border-radius:10px; padding:10px 22px; margin-bottom:10px; position:relative; z-index:1; animation:warnpulse 2.5s ease-in-out infinite; }
+  .beta-warn-text { font-size:12px; font-weight:700; background:linear-gradient(90deg,#ff6b00,#ff2200,#ff9500); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; letter-spacing:.3px; }
+  @keyframes warnpulse { 0%,100%{box-shadow:0 0 0 0 rgba(255,80,0,0),0 0 16px rgba(255,80,0,.15)} 50%{box-shadow:0 0 0 5px rgba(255,80,0,0),0 0 30px rgba(255,80,0,.4)} }
+
+  /* ── FOOTER ── */
+  footer { background:var(--bg2); border-top:1px solid var(--border); padding:36px 52px; display:flex; align-items:center; justify-content:space-between; font-size:12px; color:var(--muted); flex-wrap:wrap; gap:12px; }
+  .footer-logo { display:flex; align-items:center; gap:8px; font-weight:700; font-size:14px; color:var(--text); }
+  .footer-logo .lb { width:22px; height:22px; background:linear-gradient(135deg,var(--accent3),var(--accent)); border-radius:5px; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:900; color:#fff; }
+
+  /* ── REVEAL ── */
+  .reveal { opacity:0; transform:translateY(28px); transition:opacity .7s ease,transform .7s ease; }
+  .reveal.visible { opacity:1; transform:translateY(0); }
+
+  @media(max-width:768px){
+    nav{padding:0 18px}
+    .nav-links{display:none}
+    .section,.big-feature,.themes-section,.shortcuts-section,.cta-section,.changelog-section,footer{padding-left:18px;padding-right:18px}
+    .features-grid,.shortcuts-grid{grid-template-columns:1fr}
+    .big-feature{grid-template-columns:1fr;gap:32px}
+    .stats{flex-wrap:wrap}
+    .stat{min-width:50%;border-right:none;border-bottom:1px solid var(--border)}
+    .hero h1{letter-spacing:-2px}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="#">
+    <div class="lb">EB</div>
+    ERDO BROWSER
+  </a>
+  <div style="display:flex;align-items:center;gap:16px">
+    <div class="nav-links" id="nav-links-pc">
+    <a href="#features">Özellikler</a>
+    <a href="#security">Güvenlik</a>
+    <a href="#changelog">Sürümler</a>
+    <a href="#shortcuts">Kısayollar</a>
+    <a href="#download" class="nav-cta">İndir</a>
+  </div>
+    <div class="platform-switch">
+      <button class="platform-btn active" id="btn-pc" onclick="switchPlatform('pc')">🖥 PC</button>
+      <button class="platform-btn" id="btn-mobile" onclick="switchPlatform('mobile')">📱 Mobile</button>
+    </div>
+  </div>
+</nav>
+
+<div id="view-pc">
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+
+  <div class="hero-badge">
+    <div class="bdot"></div>
+    v1.3 BETA — Şimdi Kullanılabilir
+  </div>
+
+  <h1>
+    Tarayıcını<br>
+    <span class="grad-text">Yeniden Keşfet</span>
+  </h1>
+
+  <p class="hero-sub">
+    GPU hızlandırmalı, reklam engelleyici, gerçek switch sesleri ve 6 katmanlı güvenlik ile Windows için tasarlanmış tarayıcı.
+  </p>
+
+  <div class="hero-actions">
+    <a href="#download" class="btn-primary">⬇ Windows için İndir</a>
+    <a href="#features" class="btn-secondary">Özellikleri Keşfet →</a>
+  </div>
+
+  <div class="hero-mockup">
+    <div class="mockup-frame">
+      <div class="mockup-bar">
+        <div class="dot dot-r"></div>
+        <div class="dot dot-y"></div>
+        <div class="dot dot-g"></div>
+        <div class="mockup-tabs">
+          <div class="tab active"><div class="tab-dot"></div> Yeni Sekme</div>
+          <div class="tab">github.com</div>
+          <div class="tab">youtube.com</div>
+        </div>
+      </div>
+      <div class="mockup-toolbar">
+        <div class="tb-btn">←</div>
+        <div class="tb-btn">→</div>
+        <div class="tb-btn">↻</div>
+        <div class="tb-addr">
+          <span class="addr-lock">🔒</span>
+          erdo-browser.tr
+        </div>
+        <div class="tb-btn">🛡</div>
+        <div class="tb-btn">⚙</div>
+      </div>
+      <div class="mockup-content">
+        <div class="mock-logo">EB</div>
+        <div class="mock-title">ERDO BROWSER</div>
+        <div class="mock-search">🔍 &nbsp; Ara veya adres gir…</div>
+        <div class="mock-links">
+          <div class="mock-link">🔵 Google</div>
+          <div class="mock-link">▶ YouTube</div>
+          <div class="mock-link">🐙 GitHub</div>
+          <div class="mock-link">💬 Discord</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats reveal">
+  <div class="stat">
+    <div class="stat-number">500<span style="font-size:26px">+</span></div>
+    <div class="stat-label">Engellenen Reklam Sunucusu</div>
+  </div>
+  <div class="stat">
+    <div class="stat-number">6</div>
+    <div class="stat-label">Güvenlik Katmanı</div>
+  </div>
+  <div class="stat">
+    <div class="stat-number">5</div>
+    <div class="stat-label">Switch Sesi</div>
+  </div>
+  <div class="stat">
+    <div class="stat-number">8</div>
+    <div class="stat-label">Renk Teması</div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section class="section" id="features">
+  <div class="reveal">
+    <div class="section-label">// özellikler</div>
+    <h2 class="section-title">Her detay düşünülmüş.</h2>
+    <p class="section-sub">Sadece hızlı değil — akıllı. Arka planda çalışırken bile kaynakları verimli kullanır.</p>
+  </div>
+  <div class="features-grid reveal">
+    <div class="feature-card">
+      <div class="feature-icon">⚡</div>
+      <div class="feature-title">GPU Hızlandırma</div>
+      <div class="feature-desc">GPU rasterizasyon ve zero-copy aktarım ile maksimum render hızı.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🛡️</div>
+      <div class="feature-title">6 Katmanlı Koruma</div>
+      <div class="feature-desc">Reklam, tracker, phishing, kripto miner, malware ve yetişkin içerik engeli.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🎹</div>
+      <div class="feature-title">Klavye Switch Sesleri</div>
+      <div class="feature-desc">Blue, White, Yellow, Red, Purple — gerçek mekanik klavye akustiği.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">💾</div>
+      <div class="feature-title">Bellek Optimizasyonu</div>
+      <div class="feature-desc">Arka plan sekmeleri otomatik askıya alınır. Chrome'dan %85 daha az RAM.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⬇️</div>
+      <div class="feature-title">Gelişmiş İndirme</div>
+      <div class="feature-desc">Duraklat, devam ettir, iptal et. Ctrl+J ile anlık erişim.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🎨</div>
+      <div class="feature-title">8 Renk Teması</div>
+      <div class="feature-desc">Turuncu, Mavi, Mor, Yeşil, Kırmızı, Cyan, Altın, Beyaz. Anında uygula.</div>
+    </div>
+  </div>
+</section>
+
+<!-- BIG: Memory -->
+<div class="big-feature reveal">
+  <div>
+    <div class="section-label">// bellek yönetimi</div>
+    <h2 class="section-title">Sekmeler asla sizi yavaşlatmaz.</h2>
+    <p class="section-sub">Aktif olmayan sekmeler otomatik askıya alınır. Geçiş yapınca saniyeler içinde devam eder.</p>
+  </div>
+  <div class="bf-visual mem-visual">
+    <div class="mem-bar-wrap">
+      <div class="mem-label"><span>Erdo Browser — 20 sekme</span><span style="color:var(--accent)">~180 MB</span></div>
+      <div class="mem-bar"><div class="mem-fill" style="width:22%"></div></div>
+    </div>
+    <div class="mem-bar-wrap">
+      <div class="mem-label"><span>Chrome — 20 sekme</span><span>~1.4 GB</span></div>
+      <div class="mem-bar"><div class="mem-fill mem-other" style="width:100%"></div></div>
+    </div>
+    <div class="mem-bar-wrap">
+      <div class="mem-label"><span>Firefox — 20 sekme</span><span>~900 MB</span></div>
+      <div class="mem-bar"><div class="mem-fill mem-other" style="width:64%"></div></div>
+    </div>
+    <div class="mem-bar-wrap">
+      <div class="mem-label"><span>Edge — 20 sekme</span><span>~1.1 GB</span></div>
+      <div class="mem-bar"><div class="mem-fill mem-other" style="width:79%"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- BIG: Security -->
+<div class="big-feature reverse reveal" id="security" style="background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);max-width:100%;padding:80px 10vw">
+  <div>
+    <div class="section-label">// güvenlik sistemi</div>
+    <h2 class="section-title">6 katmanlı gerçek koruma.</h2>
+    <p class="section-sub">Reklam sunucuları, izleyiciler, sahte giriş sayfaları, kripto madenciler, malware ve yetişkin içerik — hepsi ayrı ayrı kontrol edilebilir.</p>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:24px;">
+      <span style="background:rgba(255,107,0,.1);border:1px solid rgba(255,107,0,.2);border-radius:6px;padding:4px 12px;font-size:12px;color:var(--accent3);font-weight:700;">🚫 Reklam</span>
+      <span style="background:rgba(136,136,255,.1);border:1px solid rgba(136,136,255,.2);border-radius:6px;padding:4px 12px;font-size:12px;color:#8888ff;font-weight:700;">👁 Tracker</span>
+      <span style="background:rgba(255,80,80,.1);border:1px solid rgba(255,80,80,.2);border-radius:6px;padding:4px 12px;font-size:12px;color:#ff6666;font-weight:700;">⚠ Phishing</span>
+      <span style="background:rgba(68,255,136,.1);border:1px solid rgba(68,255,136,.2);border-radius:6px;padding:4px 12px;font-size:12px;color:#44ff88;font-weight:700;">⛏ Miner</span>
+      <span style="background:rgba(255,136,0,.1);border:1px solid rgba(255,136,0,.2);border-radius:6px;padding:4px 12px;font-size:12px;color:#ff8800;font-weight:700;">🦠 Malware</span>
+      <span style="background:rgba(170,68,170,.1);border:1px solid rgba(170,68,170,.2);border-radius:6px;padding:4px 12px;font-size:12px;color:#cc66cc;font-weight:700;">🔞 Yetişkin</span>
+    </div>
+  </div>
+  <div class="bf-visual sec-visual" style="background:var(--bg3)">
+    <div class="sec-row ok"><span class="sec-icon">✅</span><span class="sec-url">https://github.com/user/repo</span><span class="sec-badge ok">GEÇTİ</span></div>
+    <div class="sec-row blocked"><span class="sec-icon">🚫</span><span class="sec-url">doubleclick.net/ads/pixel</span><span class="sec-badge block">REKLAM</span></div>
+    <div class="sec-row ok"><span class="sec-icon">✅</span><span class="sec-url">https://youtube.com/watch</span><span class="sec-badge ok">GEÇTİ</span></div>
+    <div class="sec-row blocked"><span class="sec-icon">⚠</span><span class="sec-url">paypal-secure-login.tk</span><span class="sec-badge block">PHİSHİNG</span></div>
+    <div class="sec-row blocked"><span class="sec-icon">⛏</span><span class="sec-url">coinhive.com/mine.js</span><span class="sec-badge block">MİNER</span></div>
+    <div class="sec-row ok"><span class="sec-icon">✅</span><span class="sec-url">https://discord.com</span><span class="sec-badge ok">GEÇTİ</span></div>
+  </div>
+</div>
+
+<!-- BIG: Keyboard Sounds -->
+<div class="big-feature reveal">
+  <div>
+    <div class="section-label">// klavye sesleri</div>
+    <h2 class="section-title">Gerçek switch akustiği.</h2>
+    <p class="section-sub">Blue'nun keskin "CLICK"inden Yellow'un derin "THOCK"una — 5 farklı mekanik klavye hissi. Ayarlardan seçin, ses seviyesini ayarlayın.</p>
+  </div>
+  <div class="bf-visual sound-visual" style="background:var(--bg3)">
+    <div class="snd-row">
+      <div class="snd-dot" style="background:#4488ff"></div>
+      <div class="snd-name">Blue Switch</div>
+      <div class="snd-wave">
+        <div class="snd-bar" style="--d:0.3s;--h:18px"></div>
+        <div class="snd-bar" style="--d:0.25s;--h:24px;animation-delay:.05s"></div>
+        <div class="snd-bar" style="--d:0.4s;--h:14px;animation-delay:.1s"></div>
+        <div class="snd-bar" style="--d:0.3s;--h:20px;animation-delay:.15s"></div>
+        <div class="snd-bar" style="--d:0.35s;--h:16px;animation-delay:.2s"></div>
+      </div>
+      <span style="font-size:11px;color:var(--muted);margin-left:4px">CLICK</span>
+    </div>
+    <div class="snd-row">
+      <div class="snd-dot" style="background:#e0e0e8"></div>
+      <div class="snd-name">White Switch</div>
+      <div class="snd-wave">
+        <div class="snd-bar" style="--d:0.5s;--h:8px;opacity:.5"></div>
+        <div class="snd-bar" style="--d:0.6s;--h:10px;opacity:.4;animation-delay:.1s"></div>
+        <div class="snd-bar" style="--d:0.4s;--h:6px;opacity:.5;animation-delay:.2s"></div>
+      </div>
+      <span style="font-size:11px;color:var(--muted);margin-left:4px">whisper</span>
+    </div>
+    <div class="snd-row">
+      <div class="snd-dot" style="background:#ffcc00"></div>
+      <div class="snd-name">Yellow Switch</div>
+      <div class="snd-wave">
+        <div class="snd-bar" style="--d:0.5s;--h:22px"></div>
+        <div class="snd-bar" style="--d:0.45s;--h:28px;animation-delay:.06s"></div>
+        <div class="snd-bar" style="--d:0.55s;--h:20px;animation-delay:.12s"></div>
+        <div class="snd-bar" style="--d:0.5s;--h:24px;animation-delay:.18s"></div>
+      </div>
+      <span style="font-size:11px;color:var(--muted);margin-left:4px">THOCK</span>
+    </div>
+    <div class="snd-row">
+      <div class="snd-dot" style="background:#ff4444"></div>
+      <div class="snd-name">Red Switch</div>
+      <div class="snd-wave">
+        <div class="snd-bar" style="--d:0.2s;--h:20px"></div>
+        <div class="snd-bar" style="--d:0.22s;--h:14px;animation-delay:.04s"></div>
+        <div class="snd-bar" style="--d:0.18s;--h:18px;animation-delay:.08s"></div>
+      </div>
+      <span style="font-size:11px;color:var(--muted);margin-left:4px">CLACK</span>
+    </div>
+    <div class="snd-row">
+      <div class="snd-dot" style="background:#aa44ff"></div>
+      <div class="snd-name">Purple Switch</div>
+      <div class="snd-wave">
+        <div class="snd-bar" style="--d:0.35s;--h:16px"></div>
+        <div class="snd-bar" style="--d:0.4s;--h:22px;animation-delay:.08s"></div>
+        <div class="snd-bar" style="--d:0.3s;--h:18px;animation-delay:.16s"></div>
+        <div class="snd-bar" style="--d:0.35s;--h:14px;animation-delay:.24s"></div>
+      </div>
+      <span style="font-size:11px;color:var(--muted);margin-left:4px">TICK-TOCK</span>
+    </div>
+  </div>
+</div>
+
+<!-- BIG: Downloads -->
+<div class="big-feature reverse reveal" style="background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);max-width:100%;padding:80px 10vw">
+  <div>
+    <div class="section-label">// indirme yöneticisi</div>
+    <h2 class="section-title">İndirmeler tam kontrolünüzde.</h2>
+    <p class="section-sub">Ctrl+J ile indirme panelini açın. Duraklatın, devam ettirin, iptal edin — her şey anlık görünür.</p>
+  </div>
+  <div class="bf-visual dl-visual" style="background:var(--bg3)">
+    <div class="dl-item">
+      <div class="dl-icon">📦</div>
+      <div class="dl-info">
+        <div class="dl-name">ErdoBrowser-Setup-v1.3.exe</div>
+        <div class="dl-prog"><div class="dl-prog-fill" style="width:72%"></div></div>
+      </div>
+      <div class="dl-size">14.2 MB/s</div>
+    </div>
+    <div class="dl-item">
+      <div class="dl-icon">🎵</div>
+      <div class="dl-info">
+        <div class="dl-name">playlist_2026.zip</div>
+        <div class="dl-prog"><div class="dl-prog-fill" style="width:38%"></div></div>
+      </div>
+      <div class="dl-size">⏸ Duraklatıldı</div>
+    </div>
+    <div class="dl-item" style="border-color:rgba(39,201,63,.3)">
+      <div class="dl-icon">✅</div>
+      <div class="dl-info">
+        <div class="dl-name">rapor_mart.pdf</div>
+        <div class="dl-prog"><div class="dl-prog-fill" style="width:100%"></div></div>
+      </div>
+      <div class="dl-size" style="color:var(--green)">Tamamlandı</div>
+    </div>
+  </div>
+</div>
+
+<!-- THEMES -->
+<section class="section reveal">
+  <div class="section-label">// temalar</div>
+  <h2 class="section-title">Tarayıcını renklendir.</h2>
+  <p class="section-sub">8 farklı renk teması. Ayarlar menüsünden tek tıkla uygula.</p>
+  <div class="themes-grid">
+    <div class="theme-pill"><div class="theme-color" style="background:#ff6b00"></div><div class="theme-name">Turuncu</div></div>
+    <div class="theme-pill"><div class="theme-color" style="background:#0088ff"></div><div class="theme-name">Mavi</div></div>
+    <div class="theme-pill"><div class="theme-color" style="background:#9b59ff"></div><div class="theme-name">Mor</div></div>
+    <div class="theme-pill"><div class="theme-color" style="background:#00c853"></div><div class="theme-name">Yeşil</div></div>
+    <div class="theme-pill"><div class="theme-color" style="background:#ff1744"></div><div class="theme-name">Kırmızı</div></div>
+    <div class="theme-pill"><div class="theme-color" style="background:#00e5ff"></div><div class="theme-name">Cyan</div></div>
+    <div class="theme-pill"><div class="theme-color" style="background:#ffd700"></div><div class="theme-name">Altın</div></div>
+    <div class="theme-pill"><div class="theme-color" style="background:#f0f0f4;border:1px solid #333"></div><div class="theme-name">Beyaz</div></div>
+  </div>
+</section>
+
+<!-- SHORTCUTS -->
+<section class="shortcuts-section" id="shortcuts">
+  <div class="shortcuts-inner">
+    <div class="reveal">
+      <div class="section-label">// klavye kısayolları</div>
+      <h2 class="section-title">Her şey parmaklarınızın ucunda.</h2>
+    </div>
+    <div class="shortcuts-grid reveal">
+      <div class="shortcut"><div class="kbd-combo"><div class="kbd">Ctrl</div><div style="color:var(--muted);font-size:11px">+</div><div class="kbd">T</div></div><div class="shortcut-desc">Yeni sekme</div></div>
+      <div class="shortcut"><div class="kbd-combo"><div class="kbd">Ctrl</div><div style="color:var(--muted);font-size:11px">+</div><div class="kbd">W</div></div><div class="shortcut-desc">Sekme kapat</div></div>
+      <div class="shortcut"><div class="kbd-combo"><div class="kbd">Ctrl</div><div style="color:var(--muted);font-size:11px">+</div><div class="kbd">J</div></div><div class="shortcut-desc">İndirmeler</div></div>
+      <div class="shortcut"><div class="kbd-combo"><div class="kbd">Ctrl</div><div style="color:var(--muted);font-size:11px">+</div><div class="kbd">P</div></div><div class="shortcut-desc">Şifreler</div></div>
+      <div class="shortcut"><div class="kbd-combo"><div class="kbd">Ctrl</div><div style="color:var(--muted);font-size:11px">+</div><div class="kbd">L</div></div><div class="shortcut-desc">Adres çubuğu</div></div>
+      <div class="shortcut"><div class="kbd-combo"><div class="kbd">Ctrl</div><div style="color:var(--muted);font-size:11px">+</div><div class="kbd">D</div></div><div class="shortcut-desc">Yer imi ekle</div></div>
+      <div class="shortcut"><div class="kbd-combo"><div class="kbd">Ctrl</div><div style="color:var(--muted);font-size:11px">+</div><div class="kbd">H</div></div><div class="shortcut-desc">Geçmiş</div></div>
+      <div class="shortcut"><div class="kbd-combo"><div class="kbd">F11</div></div><div class="shortcut-desc">Tam ekran</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- CHANGELOG -->
+<section class="changelog-section" id="changelog">
+  <div class="reveal" style="text-align:center;margin-bottom:52px">
+    <div class="section-label" style="text-align:center">// sürüm geçmişi</div>
+    <h2 class="section-title" style="max-width:100%;text-align:center;letter-spacing:-2px">Ne Değişti?</h2>
+  </div>
+
+  <!-- v1.3 BETA -->
+  <div class="cl-card new reveal">
+    <div class="cl-stripe new"></div>
+    <div class="cl-header">
+      <span class="cl-badge new">YENİ</span>
+      <span class="cl-version">v1.3 BETA</span>
+      <span class="cl-date">Mart 2026</span>
+    </div>
+    <div class="cl-items">
+      <div class="cl-item">
+        <div class="cl-emoji">🎬</div>
+        <div><div class="cl-item-title">Canlı Arka Plan Sistemi</div><div class="cl-item-desc">Yeni sekme sayfasında 6 animasyon: Kar, Yağmur, Partiküller, Ateşböcekleri, Aurora, Yıldız Yağmuru. Kendi resim veya GIF'ini de yükleyebilirsin</div></div>
+      </div>
+      <div class="cl-item">
+        <div class="cl-emoji">❄</div>
+        <div><div class="cl-item-title">Kar Yağışı &amp; Yağmur</div><div class="cl-item-desc">Canvas tabanlı gerçek zamanlı animasyonlar — 120 kar tanesi veya 180 yağmur damlası, fizik simülasyonlu düşüş hareketi</div></div>
+      </div>
+      <div class="cl-item">
+        <div class="cl-emoji">🌠</div>
+        <div><div class="cl-item-title">Yıldız Yağmuru</div><div class="cl-item-desc">220 twinkle eden yıldız ve rastgele aralıklarla geçen turuncu meteor izleri. Gece gökyüzü atmosferi</div></div>
+      </div>
+      <div class="cl-item">
+        <div class="cl-emoji">🌌</div>
+        <div><div class="cl-item-title">Aurora Borealis</div><div class="cl-item-desc">Kuzey ışıkları efekti — yeşil, mavi, mor dalga katmanları, sin fonksiyonu ile organik hareket</div></div>
+      </div>
+      <div class="cl-item">
+        <div class="cl-emoji">✨</div>
+        <div><div class="cl-item-title">Partiküller &amp; Ateşböcekleri</div><div class="cl-item-desc">Birbirine çizgi çeken yüzen noktalar ya da ışıldayan ateşböceği sürüsü — düşük CPU ile smooth 60fps</div></div>
+      </div>
+      <div class="cl-item">
+        <div class="cl-emoji">⚡</div>
+        <div><div class="cl-item-title">Performans Optimizasyonu</div><div class="cl-item-desc">requestAnimationFrame + stagger timer + destination-out composite — tüm animasyonlar akıcı render</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- v1.2 BETA -->
+  <div class="cl-card reveal" style="background:rgba(255,255,255,.015);border:1px solid rgba(255,255,255,.07)">
+    <div class="cl-stripe" style="background:rgba(255,107,0,.3)"></div>
+    <div class="cl-header">
+      <span class="cl-badge" style="background:rgba(255,107,0,.12);color:var(--accent);border:1px solid rgba(255,107,0,.2)">ÖNCEKİ</span>
+      <span class="cl-version" style="color:var(--dim)">v1.2 BETA</span>
+      <span class="cl-date">Mart 2026</span>
+    </div>
+    <div class="cl-items">
+      <div class="cl-item">
+        <div class="cl-emoji" style="opacity:.6">🎹</div>
+        <div><div class="cl-item-title" style="color:var(--dim)">Klavye Switch Sesleri</div><div class="cl-item-desc" style="color:var(--muted)">Blue, White, Yellow, Red, Purple — gerçek mekanik switch akustiği</div></div>
+      </div>
+      <div class="cl-item">
+        <div class="cl-emoji" style="opacity:.6">🛡</div>
+        <div><div class="cl-item-title" style="color:var(--dim)">6 Katmanlı Güvenlik</div><div class="cl-item-desc" style="color:var(--muted)">Reklam, tracker, phishing, kripto miner, malware, yetişkin içerik engelleme</div></div>
+      </div>
+      <div class="cl-item">
+        <div class="cl-emoji" style="opacity:.6">📊</div>
+        <div><div class="cl-item-title" style="color:var(--dim)">Canlı Engelleme İstatistikleri</div><div class="cl-item-desc" style="color:var(--muted)">Ayarlar panelinde gerçek zamanlı engelleme sayaçları</div></div>
+      </div>
+      <div class="cl-item">
+        <div class="cl-emoji" style="opacity:.6">🚫</div>
+        <div><div class="cl-item-title" style="color:var(--dim)">500+ Reklam Sunucusu</div><div class="cl-item-desc" style="color:var(--muted)">Google Ads, Taboola, Criteo, DoubleClick ve daha fazlası engellendi</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- v1.1 BETA -->
+  <div class="cl-card old reveal">
+    <div class="cl-stripe old"></div>
+    <div class="cl-header">
+      <span class="cl-badge old">ESKİ</span>
+      <span class="cl-version" style="color:var(--muted)">v1.1 BETA</span>
+      <span class="cl-date">Mart 2026</span>
+    </div>
+    <div class="cl-old-items">
+      <div class="cl-old-item"><span>✓</span> URL kısaltma — adres çubuğu domain+path gösterir</div>
+      <div class="cl-old-item"><span>✓</span> Gizli sekme düzeltmesi</div>
+      <div class="cl-old-item"><span>✓</span> Disk cache iyileştirmesi</div>
+      <div class="cl-old-item"><span>✓</span> Sekme kayma düzeltme</div>
+    </div>
+  </div>
+
+    <!-- v1.0 BETA -->
+  <div class="cl-card old reveal">
+    <div class="cl-stripe old"></div>
+    <div class="cl-header">
+      <span class="cl-badge old">İLK SÜRÜM</span>
+      <span class="cl-version" style="color:var(--muted)">v1.0 BETA</span>
+      <span class="cl-date">Mart 2026</span>
+    </div>
+    <div class="cl-old-items">
+      <div class="cl-old-item"><span>✓</span> Temel tarayıcı motoru (WebEngine)</div>
+      <div class="cl-old-item"><span>✓</span> 8 farklı renk teması</div>
+      <div class="cl-old-item"><span>✓</span> Şifre yöneticisi</div>
+      <div class="cl-old-item"><span>✓</span> İndirme yöneticisi (duraklat/iptal)</div>
+      <div class="cl-old-item"><span>✓</span> Temel içerik koruması</div>
+      <div class="cl-old-item"><span>✓</span> Sekme askıya alma</div>
+      <div class="cl-old-item"><span>✓</span> Gizli sekme modu</div>
+      <div class="cl-old-item"><span>✓</span> macOS tarzı başlık çubuğu</div>
+      <div class="cl-old-item"><span>✓</span> GPU hızlandırma</div>
+      <div class="cl-old-item"><span>✓</span> Hızlı erişim kısayolları</div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section" id="download">
+  <div class="version-tag reveal">v1.3 BETA</div>
+
+  <div class="beta-warn reveal">
+    <span style="font-size:16px">⚠️</span>
+    <span class="beta-warn-text">BU BROWSER ŞU AN BETA AŞAMASINDA — BAZI SORUNLAR OLABİLİR</span>
+    <span style="font-size:16px">⚠️</span>
+  </div>
+
+  <h2 class="reveal">Hazır mısın?</h2>
+  <p class="reveal">Erdo Browser'ı şimdi indir, farkı hemen hisset.</p>
+
+  <div class="dl-card reveal">
+    <div class="dl-inner">
+      <div class="dl-top">
+        <div class="dl-logo">EB</div>
+        <div>
+          <div class="dl-filename">ErdoBrowser-Setup-v1.3-BETA.exe</div>
+          <div class="dl-meta">Windows 10/11 · 64-bit · ~120 MB</div>
+        </div>
+      </div>
+      <a href="ErdoBrowser-Setup-v1.3-BETA.exe" target="_blank" class="dl-btn"
+         onmouseover="this.style.background='#ff9500';this.style.transform='translateY(-2px)'"
+         onmouseout="this.style.background='#ff6b00';this.style.transform='none'">
+        ⬇ &nbsp; Setup'ı İndir
+      </a>
+      <div class="dl-chips">
+        <span class="dl-chip">✓ Ücretsiz</span>
+        <span class="dl-chip">✓ Reklamsız</span>
+        <span class="dl-chip">✓ Açık kaynak</span>
+      </div>
+    </div>
+    <div class="dl-req">
+      <span>🖥 Windows 10/11</span>
+      <span>⚙ 64-bit</span>
+      <span>🐍 Python dahil</span>
+      <span>🌐 WebEngine</span>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">
+    <div class="lb">EB</div>
+    ERDO BROWSER
+  </div>
+  <div>v1.3 BETA · 2026 · Tüm hakları saklıdır.</div>
+  <div style="font-family:'Geist Mono',monospace;font-size:11px">Güçlü · Hızlı · Güvenli</div>
+</footer>
+
+<script>
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.08 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+</script>
+
+</div><!-- /view-pc -->
+
+<!-- MOBILE VIEW -->
+<div id="view-mobile" style="display:none">
+<style>
+  .mob-hero { min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:100px 24px 60px; position:relative; overflow:hidden; }
+  .mob-hero-bg { position:absolute; inset:0; background:radial-gradient(ellipse 80% 60% at 50% 30%, rgba(255,107,0,.08), transparent 70%); pointer-events:none; }
+  .mob-phone-wrap { position:relative; margin-bottom:52px; }
+  .mob-phone { width:200px; height:390px; background:linear-gradient(160deg,#1a1a1f,#111114); border:2px solid rgba(255,255,255,.1); border-radius:36px; position:relative; box-shadow:0 40px 100px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.04), inset 0 1px 0 rgba(255,255,255,.06); display:flex; flex-direction:column; align-items:center; overflow:hidden; }
+  .mob-phone::before { content:''; position:absolute; top:12px; width:60px; height:5px; background:rgba(255,255,255,.12); border-radius:3px; }
+  .mob-screen { width:100%; height:100%; display:flex; flex-direction:column; align-items:center; padding:32px 12px 16px; gap:8px; }
+  .mob-status { display:flex; justify-content:space-between; width:100%; font-size:8px; color:rgba(255,255,255,.3); margin-bottom:4px; }
+  .mob-urlbar { width:100%; background:rgba(255,255,255,.06); border-radius:8px; padding:6px 10px; font-size:8px; color:rgba(255,255,255,.4); display:flex; align-items:center; gap:4px; }
+  .mob-content { flex:1; width:100%; background:rgba(255,255,255,.02); border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; }
+  .mob-logo-sm { width:36px; height:36px; background:linear-gradient(140deg,#ff9500,#ff6b00,#ff4500); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:900; color:#fff; }
+  .mob-search-sm { width:85%; background:rgba(255,255,255,.05); border-radius:20px; padding:7px 12px; font-size:7px; color:rgba(255,255,255,.25); text-align:center; }
+  .mob-links-sm { display:flex; gap:6px; flex-wrap:wrap; justify-content:center; }
+  .mob-link-sm { background:rgba(255,255,255,.05); border-radius:6px; padding:5px 8px; font-size:6px; color:rgba(255,255,255,.3); }
+  .mob-navbar { display:flex; justify-content:space-around; width:100%; padding:6px 0 2px; border-top:1px solid rgba(255,255,255,.05); }
+  .mob-navitem { display:flex; flex-direction:column; align-items:center; gap:2px; font-size:6px; color:rgba(255,255,255,.25); }
+  .mob-navitem span { font-size:12px; }
+  .mob-navitem.active { color:var(--accent3); }
+  .mob-glow { position:absolute; width:280px; height:280px; background:radial-gradient(circle, rgba(255,107,0,.15), transparent 70%); top:50%; left:50%; transform:translate(-50%,-50%); border-radius:50%; animation:mobpulse 3s ease-in-out infinite; pointer-events:none; }
+  @keyframes mobpulse { 0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.6} 50%{transform:translate(-50%,-50%) scale(1.2);opacity:1} }
+  .mob-badge { display:inline-flex; align-items:center; gap:8px; background:rgba(255,107,0,.1); border:1px solid rgba(255,107,0,.2); border-radius:20px; padding:6px 16px; font-size:12px; font-weight:700; color:var(--accent3); margin-bottom:24px; }
+  .mob-title { font-size:clamp(36px,6vw,64px); font-weight:900; letter-spacing:-3px; line-height:1; margin-bottom:20px; }
+  .mob-sub { font-size:16px; color:var(--dim); max-width:480px; line-height:1.6; margin-bottom:40px; }
+  .mob-soon-card { background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.07); border-radius:20px; padding:32px; max-width:480px; width:100%; margin:0 auto 60px; }
+  .mob-feat-list { display:flex; flex-direction:column; gap:16px; text-align:left; }
+  .mob-feat-item { display:flex; align-items:flex-start; gap:14px; }
+  .mob-feat-icon { font-size:22px; width:42px; height:42px; background:rgba(255,107,0,.08); border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .mob-feat-title { font-size:14px; font-weight:700; margin-bottom:3px; }
+  .mob-feat-desc { font-size:12px; color:var(--dim); line-height:1.5; }
+  .mob-notify-btn { display:inline-flex; align-items:center; gap:8px; background:linear-gradient(135deg,var(--accent3),var(--accent2)); color:#fff; padding:14px 32px; border-radius:12px; font-size:15px; font-weight:700; border:none; cursor:pointer; box-shadow:0 0 40px rgba(255,107,0,.3); transition:all .2s; text-decoration:none; }
+  .mob-notify-btn:hover { transform:translateY(-2px); box-shadow:0 0 60px rgba(255,107,0,.45); }
+  .mob-os-pills { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:20px; }
+  .mob-os-pill { display:flex; align-items:center; gap:6px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:8px; padding:8px 16px; font-size:12px; font-weight:600; color:var(--dim); }
+  .mob-progress-wrap { max-width:480px; width:100%; margin:0 auto 32px; }
+  .mob-progress-label { display:flex; justify-content:space-between; font-size:12px; color:var(--dim); margin-bottom:8px; }
+  .mob-progress-bar { height:4px; background:rgba(255,255,255,.06); border-radius:2px; overflow:hidden; }
+  .mob-progress-fill { height:100%; background:linear-gradient(90deg,var(--accent),var(--accent3)); border-radius:2px; animation:progfill 2s ease forwards; }
+  @keyframes progfill { from{width:0} to{width:35%} }
+</style>
+
+<section class="mob-hero">
+  <div class="mob-hero-bg"></div>
+
+  <div class="mob-phone-wrap">
+    <div class="mob-glow"></div>
+    <div class="mob-phone">
+      <div class="mob-screen">
+        <div class="mob-status"><span>9:41</span><span>📶 🔋</span></div>
+        <div class="mob-urlbar">🔒 <span>erdo-browser.tr</span></div>
+        <div class="mob-content">
+          <div class="mob-logo-sm">EB</div>
+          <div style="font-size:9px;font-weight:800;color:rgba(255,255,255,.7);letter-spacing:1px">ERDO BROWSER</div>
+          <div class="mob-search-sm">🔍 Ara veya adres gir…</div>
+          <div class="mob-links-sm">
+            <div class="mob-link-sm">🔵 Google</div>
+            <div class="mob-link-sm">▶ YouTube</div>
+            <div class="mob-link-sm">🐙 GitHub</div>
+            <div class="mob-link-sm">💬 Discord</div>
+          </div>
+        </div>
+        <div class="mob-navbar">
+          <div class="mob-navitem"><span>←</span><div>Geri</div></div>
+          <div class="mob-navitem"><span>→</span><div>İleri</div></div>
+          <div class="mob-navitem active"><span>⊞</span><div>Sekmeler</div></div>
+          <div class="mob-navitem"><span>⋮</span><div>Menü</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mob-badge">
+    <div class="bdot"></div>
+    Geliştirme Aşamasında
+  </div>
+
+  <h1 class="mob-title">Erdo Browser<br><span class="grad-text">Mobile</span></h1>
+  <p class="mob-sub">PC'de sevdiğin deneyim — cebinde. Aynı hız, aynı güvenlik, aynı reklamsız tarayıcı. Yakında Android & iOS için.</p>
+
+  <div class="mob-soon-card">
+    <div style="font-size:13px;font-weight:700;letter-spacing:.5px;color:var(--dim);margin-bottom:20px">// Gelecek Özellikler</div>
+    <div class="mob-feat-list">
+      <div class="mob-feat-item">
+        <div class="mob-feat-icon">🛡️</div>
+        <div>
+          <div class="mob-feat-title">6 Katmanlı Güvenlik</div>
+          <div class="mob-feat-desc">Reklam, tracker, phishing, miner, malware ve yetişkin içerik engeli — mobilde de tam koruma.</div>
+        </div>
+      </div>
+      <div class="mob-feat-item">
+        <div class="mob-feat-icon">⚡</div>
+        <div>
+          <div class="mob-feat-title">GPU Hızlandırma</div>
+          <div class="mob-feat-desc">Mobil GPU optimizasyonu ile akıcı kaydırma, hızlı render. Pil ömrü odaklı güç yönetimi.</div>
+        </div>
+      </div>
+      <div class="mob-feat-item">
+        <div class="mob-feat-icon">🌙</div>
+        <div>
+          <div class="mob-feat-title">OLED Karanlık Tema</div>
+          <div class="mob-feat-desc">Gerçek siyah pikseller — OLED ekranlarda %40 daha az pil tüketimi.</div>
+        </div>
+      </div>
+      <div class="mob-feat-item">
+        <div class="mob-feat-icon">🔄</div>
+        <div>
+          <div class="mob-feat-title">PC ile Senkronizasyon</div>
+          <div class="mob-feat-desc">Yer imleri, geçmiş ve şifreler PC ve telefon arasında otomatik senkronize.</div>
+        </div>
+      </div>
+      <div class="mob-feat-item">
+        <div class="mob-feat-icon">🎨</div>
+        <div>
+          <div class="mob-feat-title">Özelleştirilebilir Arayüz</div>
+          <div class="mob-feat-desc">8 renk teması, alt/üst adres çubuğu seçeneği, jest kontrolü.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mob-os-pills">
+    <div class="mob-os-pill">🤖 Android <span style="color:rgba(255,255,255,.3);margin-left:4px">— Yakında</span></div>
+  </div>
+
+</section>
+
+<footer style="text-align:center;padding:32px;color:var(--muted);font-size:12px;border-top:1px solid var(--border)">
+  <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px">
+    <div class="lb" style="width:24px;height:24px;font-size:10px">EB</div>
+    <span style="font-weight:800;letter-spacing:1px">ERDO BROWSER</span>
+  </div>
+  v1.3 BETA · 2026 · Tüm hakları saklıdır.
+</footer>
+
+</div><!-- /view-mobile -->
+
+<script>
+function switchPlatform(p) {
+  document.getElementById('view-pc').style.display     = p==='pc' ? '' : 'none';
+  document.getElementById('view-mobile').style.display = p==='mobile' ? '' : 'none';
+  document.getElementById('btn-pc').classList.toggle('active',     p==='pc');
+  document.getElementById('btn-mobile').classList.toggle('active', p==='mobile');
+  document.getElementById('nav-links-pc').style.display = p==='pc' ? '' : 'none';
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+</script>
+</body>
+</html>
