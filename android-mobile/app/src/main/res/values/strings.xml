@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Erdo Browser Mobile</string>
+    <string name="address_hint">Adres veya arama</string>
+    <string name="back">Geri</string>
+    <string name="forward">Ileri</string>
+    <string name="reload">Yenile</string>
+    <string name="home">Ana sayfa</string>
+</resources>
